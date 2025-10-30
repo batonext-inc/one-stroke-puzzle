@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一筆書きパズル</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="main.js"></script>
+</head>
+<body>
+    <main class="app">
+        <header class="top-bar">
+            <h1 class="app-title">一筆書きパズル</h1>
+            <div class="control-bar" role="group" aria-label="ゲーム操作">
+                <label class="level-selector">
+                    <span class="level-selector__label">レベル</span>
+                    <select id="difficultySelect" class="level-selector__select" name="difficulty">
+                        <option value="easy" selected>かんたん</option>
+                        <option value="normal">ふつう</option>
+                        <option value="hard">むずかしい</option>
+                    </select>
+                </label>
+                <div>
+                    <button class="control-btn action-btn" id="resetButton" type="button">やり直す</button>
+                    <button class="control-btn action-btn" id="nextButton" type="button">次の問題</button>
+                </div>
+              </div>
+        </header>
+
+        <section class="board-wrapper" aria-label="6x6 一筆書きパズル">
+            <div id="board" class="board"></div>
+        </section>
+
+        <div id="statusBar" class="status-bar" aria-live="polite">スタートマスをなぞってください。</div>
+    </main>
+</body>
+</html>
