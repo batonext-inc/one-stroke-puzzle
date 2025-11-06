@@ -69,11 +69,6 @@ body {
     outline: none;
 }
 
-.difficulty-btn.is-active {
-    background: var(--primary-color);
-    color: #ffffff;
-}
-
 .action-btn {
     background: #f8fafc;
     color: #0f172a;
@@ -144,7 +139,7 @@ body {
 
 .board {
     display: grid;
-    grid-template-columns: repeat(6, minmax(var(--tile-base), 1fr));
+    grid-template-columns: repeat(var(--board-cols, 6), 1fr);
     gap: var(--grid-gap);
     touch-action: none;
     user-select: none;
