@@ -1,132 +1,59 @@
 (() => {
-    const ROWS = 6;
-    const COLS = 6;
-    const TOTAL_CELLS = ROWS * COLS;
-    const ALL_CELL_IDS = Array.from({ length: TOTAL_CELLS }, (_, i) => i);
+    function createGeometry(rows, cols) {
+        return {
+            rows,
+            cols,
+            totalCells: rows * cols,
+            allCellIds: Array.from({ length: rows * cols }, (_, index) => index)
+        };
+    }
 
     const difficultyConfig = {
         easy: {
             key: "easy",
             label: "かんたん",
-            requireFullCover: false,
-            giveLiveWarning: true,
-            startGoalStyle: "edgeCorners",
-            blockStyle: "guided"
+            rows: 6,
+            cols: 6,
+            requireFullCover: true
         },
         normal: {
             key: "normal",
             label: "ふつう",
-            requireFullCover: true,
-            giveLiveWarning: "onlyWhenDead",
-            startGoalStyle: "edgeMixed",
-            blockStyle: "balanced"
+            rows: 8,
+            cols: 8,
+            requireFullCover: true
         },
         hard: {
             key: "hard",
             label: "むずかしい",
-            requireFullCover: true,
-            giveLiveWarning: false,
-            startGoalStyle: "mixedInterior",
-            blockStyle: "trappy"
+            rows: 10,
+            cols: 10,
+            requireFullCover: true
         }
     };
 
-    const EASY_PRESETS = [
-        {
-            start: [0, 1],
-            goal: [5, 4],
-            path: [
-                [0, 1], [0, 2], [1, 2], [2, 2], [2, 3], [1, 3], [0, 3], [0, 4], [1, 4], [2, 4],
-                [3, 4], [4, 4], [5, 4]
-            ]
-        },
-        {
-            start: [0, 4],
-            goal: [5, 1],
-            path: [
-                [0, 4], [1, 4], [2, 4], [3, 4], [4, 4], [4, 3],
-                [4, 2], [3, 2], [2, 2], [1, 2], [0, 2], [0, 1],
-                [1, 1], [2, 1], [3, 1], [4, 1], [5, 1]
-            ]
-        },
-        {
-            start: [0, 2],
-            goal: [5, 3],
-            path: [
-                [0, 2], [1, 2], [1, 3], [2, 3], [2, 2], [2, 1], [1, 1],
-                [0, 1], [0, 0], [1, 0], [2, 0], [3, 0],
-                [4, 0], [5, 0], [5, 1], [5, 2], [5, 3]
-            ]
-        },
-        {
-            start: [0, 3],
-            goal: [5, 2],
-            path: [
-                [0, 3], [0, 4], [0, 5], [1, 5], [2, 5], [3, 5],
-                [4, 5], [4, 4], [4, 3], [4, 2], [5, 2]
-            ]
-        },
-        {
-            start: [0, 5],
-            goal: [5, 3],
-            path: [
-                [0, 5], [1, 5], [2, 5], [3, 5], [3, 4], [3, 3],
-                [3, 2], [3, 1], [3, 0], [4, 0], [5, 0], [5, 1],
-                [5, 2], [5, 3]
-            ]
-        },
-    ];
+    const DEFAULT_DIFFICULTY_KEY = "easy";
 
-    const NORMAL_START_GOAL_OPTIONS = [
-        {
-            start: [0, 0],
-            goal: [5, 5],
-            path: [
-                [0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [2, 2], [2, 1],
-                [1, 1], [1, 0], [2, 0], [3, 0], [4, 0], [4, 1], [4, 2], [3, 2],
-                [3, 3], [3, 4], [2, 4], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5],
-                [5, 5]
-            ]
-        },
-        {
-            start: [0, 1],
-            goal: [5, 4],
-            path: [
-                [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [1, 5], [1, 4], [1, 3],
-                [1, 2], [1, 1], [1, 0], [2, 0], [2, 1], [2, 2], [2, 3], [2, 4],
-                [3, 4], [4, 4], [5, 4]
-            ]
-        },
-        {
-            start: [1, 0],
-            goal: [4, 5],
-            path: [
-                [1, 0], [0, 0], [0, 1], [1, 1], [2, 1], [2, 2], [1, 2], [0, 2],
-                [0, 3], [1, 3], [2, 3], [3, 3], [3, 4], [2, 4], [1, 4], [0, 4],
-                [0, 5], [1, 5], [2, 5], [3, 5], [4, 5]
-            ]
-        },
-        {
-            start: [0, 4],
-            goal: [5, 1],
-            path: [
-                [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [3, 0],
-                [3, 1], [3, 2], [2, 2], [1, 2], [1, 3], [1, 4], [1, 5], [2, 5],
-                [3, 5], [4, 5], [4, 4], [4, 3], [4, 2], [5, 2], [5, 1]
-            ]
-        },
-        {
-            start: [1, 5],
-            goal: [4, 0],
-            path: [
-                [1, 5], [0, 5], [0, 4], [0, 3], [1, 3], [2, 3], [2, 4], [2, 5],
-                [3, 5], [4, 5], [5, 5], [5, 4], [5, 3], [4, 3], [3, 3], [3, 2],
-                [3, 1], [2, 1], [1, 1], [1, 0], [2, 0], [3, 0], [4, 0]
-            ]
-        }
-    ];
+    const boardState = {
+        difficultyKey: DEFAULT_DIFFICULTY_KEY,
+        config: difficultyConfig[DEFAULT_DIFFICULTY_KEY],
+        geometry: createGeometry(
+            difficultyConfig[DEFAULT_DIFFICULTY_KEY].rows,
+            difficultyConfig[DEFAULT_DIFFICULTY_KEY].cols
+        ),
+        startId: 0,
+        goalId: 0,
+        blockedSet: new Set(),
+        accessibleCount: 0,
+        neighbors: [],
+        cellsById: [],
+        cellLabels: [],
+        cellPipes: [],
+        currentPreset: null,
+        currentPresetSignature: null
+    };
 
-    const HARD_START_GOAL_OPTIONS = [
+    const EASY_START_GOAL_OPTIONS = [
         {
             start: [2, 2],
             goal: [3, 3],
@@ -180,69 +107,232 @@
         }
     ];
 
+    const NORMAL_START_GOAL_OPTIONS = [
+        {
+            start: [2, 4],
+            goal: [7, 0],
+            path: [
+                [2, 4], [3, 4], [3, 3], [2, 3], [2, 2], [3, 2], [3, 1], [2, 1], [2, 0], [3, 0],
+                [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [5, 4], [5, 3], [5, 2], [6, 2], [6, 3],
+                [6, 4], [6, 5], [5, 5], [4, 5], [3, 5], [2, 5], [1, 5], [1, 4], [1, 3], [1, 2],
+                [1, 1], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [1, 6],
+                [1, 7], [2, 7], [2, 6], [3, 6], [3, 7], [4, 7], [4, 6], [5, 6], [5, 7], [6, 7],
+                [7, 7], [7, 6], [7, 5], [7, 4], [7, 3], [7, 2], [7, 1], [6, 1], [5, 1], [5, 0],
+                [6, 0], [7, 0]
+            ]
+        },
+        {
+            start: [0, 7],
+            goal: [7, 7],
+            path: [
+                [0, 7], [0, 6], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0],
+                [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7],
+                [2, 7], [2, 6], [2, 5], [2, 4], [2, 3], [2, 2], [2, 1], [2, 0],
+                [3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7],
+                [4, 7], [4, 6], [4, 5], [4, 4], [4, 3], [4, 2], [4, 1], [4, 0],
+                [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7],
+                [6, 7], [6, 6], [6, 5], [6, 4], [6, 3], [6, 2], [6, 1], [6, 0],
+                [7, 0], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7]
+            ]
+        },
+        {
+            start: [0, 0],
+            goal: [7, 0],
+            path: [
+                [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, 1],
+                [5, 1], [4, 1], [3, 1], [2, 1], [1, 1], [0, 1], [0, 2], [1, 2],
+                [2, 2], [2, 3], [1, 3], [0, 3], [0, 4], [1, 4], [2, 4], [3, 4],
+                [3, 3], [4, 3], [4, 2], [5, 2], [6, 2], [6, 3], [5, 3], [5, 4],
+                [6, 4], [6, 5], [5, 5], [4, 5], [3, 5], [2, 5], [1, 5], [0, 5],
+                [0, 6], [0, 7], [1, 7], [1, 6], [2, 6], [2, 7], [3, 7], [3, 6],
+                [4, 6], [4, 7], [5, 7], [5, 6], [6, 6], [6, 7], [7, 7], [7, 6],
+                [7, 5], [7, 4], [7, 3], [7, 2], [7, 1], [7, 0]
+            ]
+        },
+        {
+            start: [7, 0],
+            goal: [7, 7],
+            path: [
+                [7, 0], [6, 0], [5, 0], [4, 0], [3, 0], [2, 0], [1, 0], [0, 0],
+                [0, 1], [1, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3], [2, 2],
+                [3, 2], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [7, 2], [6, 2],
+                [5, 2], [4, 2], [4, 3], [3, 3], [3, 4], [2, 4], [1, 4], [0, 4],
+                [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [4, 4], [5, 4], [5, 3],
+                [6, 3], [7, 3], [7, 4], [7, 5], [6, 5], [5, 5], [5, 6], [4, 6],
+                [3, 6], [2, 6], [1, 6], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7],
+                [4, 7], [5, 7], [6, 7], [6, 6], [7, 6], [7, 7]
+            ]
+        },
+        {
+            start: [7, 0],
+            goal: [7, 7],
+            path: [
+                [7, 0], [6, 0], [5, 0], [4, 0], [3, 0], [2, 0], [1, 0], [0, 0],
+                [0, 1], [1, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3], [2, 2],
+                [3, 2], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [7, 2], [6, 2],
+                [5, 2], [4, 2], [4, 3], [5, 3], [6, 3], [7, 3], [7, 4], [6, 4],
+                [5, 4], [4, 4], [3, 4], [2, 4], [1, 4], [0, 4], [0, 5], [1, 5],
+                [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [7, 6], [6, 6],
+                [5, 6], [4, 6], [3, 6], [2, 6], [1, 6], [0, 6], [0, 7], [1, 7],
+                [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7]
+            ]
+        }
+    ];
+
+    const HARD_START_GOAL_OPTIONS = [
+        {
+            start: [0, 0],
+            goal: [9, 9],
+            path: [
+                [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9],
+                [1, 9], [2, 9], [3, 9], [4, 9], [5, 9], [6, 9], [7, 9], [8, 9], [8, 8], [7, 8],
+                [6, 8], [5, 8], [4, 8], [3, 8], [2, 8], [1, 8], [1, 7], [2, 7], [3, 7], [4, 7],
+                [5, 7], [6, 7], [7, 7], [8, 7], [8, 6], [8, 5], [7, 5], [6, 5], [6, 6], [5, 6],
+                [4, 6], [3, 6], [2, 6], [1, 6], [1, 5], [2, 5], [3, 5], [4, 5], [4, 4], [3, 4],
+                [2, 4], [1, 4], [1, 3], [2, 3], [2, 2], [1, 2], [1, 1], [2, 1], [2, 0], [3, 0],
+                [3, 1], [3, 2], [4, 2], [4, 1], [4, 0], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4],
+                [6, 4], [7, 4], [8, 4], [8, 3], [7, 3], [6, 3], [6, 2], [7, 2], [8, 2], [8, 1],
+                [7, 1], [6, 1], [6, 0], [7, 0], [8, 0], [9, 0], [9, 1], [9, 2], [9, 3], [9, 4],
+                [9, 5], [9, 6], [9, 7], [9, 8], [9, 9]
+            ]
+        },
+        {
+            start: [9, 0],
+            goal: [9, 9],
+            path: [
+                [9, 0], [8, 0], [7, 0], [6, 0], [5, 0], [4, 0], [3, 0], [2, 0], [1, 0], [0, 0],
+                [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1],
+                [8, 2], [8, 3], [7, 3], [6, 3], [5, 3], [4, 3], [3, 3], [2, 3], [1, 3], [0, 3],
+                [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2],
+                [6, 4], [7, 4], [8, 4], [8, 5], [7, 5], [6, 5], [5, 5], [4, 5], [3, 5], [2, 5], [1, 5], [0, 5],
+                [0, 4], [1, 4], [2, 4], [3, 4],
+                [2, 6], [1, 6], [0, 6],
+                [0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7], [8, 7],
+                [8, 6], [7, 6], [6, 6], [5, 6], [4, 6],
+                [4, 8], [3, 8], [2, 8], [1, 8], [0, 8],
+                [0, 9], [1, 9], [2, 9], [3, 9], [4, 9], [5, 9], [6, 9], [7, 9], [8, 9], [9, 9],
+                [9, 8], [9, 7], [8, 8], [7, 8], [6, 8], [5, 8], [4, 8]
+
+            ]
+        },
+        {
+            start: [0, 0],
+            goal: [9, 9],
+            path: [
+                [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0],
+                [9, 1], [8, 1], [7, 1], [6, 1], [5, 1], [4, 1], [3, 1], [2, 1], [1, 1], [0, 1],
+                [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [7, 2], [8, 2], [9, 2],
+                [9, 3], [8, 3], [7, 3], [6, 3], [5, 3], [4, 3], [3, 3], [2, 3], [1, 3], [0, 3],
+                [0, 4], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4],
+                [9, 5], [8, 5], [7, 5], [6, 5], [5, 5], [4, 5], [3, 5], [2, 5], [1, 5], [0, 5],
+                [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [7, 6], [8, 6], [8, 7],
+                [9, 7], [9, 8], [8, 8], [7, 8], [7, 7], [6, 7], [5, 7], [4, 7], [3, 7], [2, 7],
+                [1, 7], [1, 8], [0, 8], [0, 9], [1, 9], [2, 9], [3, 9], [3, 8], [4, 8], [5, 8],
+                [5, 9], [6, 9], [7, 9], [8, 9], [9, 9]
+            ]
+        },
+        {
+            start: [0, 0],
+            goal: [9, 0],
+            path: [
+                [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, 1],
+                [7, 1], [6, 1], [5, 1], [4, 1], [3, 1], [2, 1], [1, 1], [0, 1], [0, 2], [1, 2],
+                [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [7, 2], [8, 2], [8, 3], [7, 3], [6, 3],
+                [5, 3], [4, 3], [3, 3], [2, 3], [1, 3], [0, 3], [0, 4], [1, 4], [2, 4], [3, 4],
+                [4, 4], [5, 4], [6, 4], [7, 4], [8, 4], [8, 5], [7, 5], [6, 5], [5, 5], [4, 5],
+                [3, 5], [2, 5], [1, 5], [0, 5], [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6],
+                [6, 6], [7, 6], [8, 6], [8, 7], [7, 7], [6, 7], [5, 7], [4, 7], [3, 7], [2, 7],
+                [2, 8], [1, 8], [0, 8], [0, 9], [1, 9], [2, 9], [3, 9], [4, 9], [4, 8], [5, 8],
+                [6, 8], [6, 9], [7, 9], [8, 9], [8, 8], [9, 8], [9, 7], [9, 6], [9, 5], [9, 4],
+                [9, 3], [9, 2], [9, 1], [9, 0]
+            ]
+        },
+        {
+            start: [4, 4],
+            goal: [9, 0],
+            path: [
+                [4, 4], [5, 4], [5, 3], [4, 3], [4, 2], [5, 2], [5, 1], [4, 1], [4, 0], [5, 0],
+                [6, 0], [6, 1], [6, 2], [6, 3], [6, 4], [7, 4], [7, 3], [7, 2], [7, 1], [7, 0],
+                [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [7, 5], [6, 5], [5, 5], [4, 5],
+                [4, 6], [5, 6], [6, 6], [7, 6], [8, 6], [8, 7], [7, 7], [6, 7], [5, 7], [4, 7],
+                [4, 8], [3, 8], [3, 7], [3, 6], [3, 5], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0],
+                [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [1, 5], [1, 4], [1, 3], [1, 2],
+                [1, 1], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [1, 6], [1, 7], [0, 7],
+                [0, 8], [1, 8], [2, 8], [2, 9], [3, 9], [4, 9], [5, 9], [6, 9], [7, 9], [8, 9],
+                [8, 8], [9, 8], [9, 7], [9, 6], [9, 5], [9, 4], [9, 3], [9, 2], [9, 1], [9, 0]
+            ]
+        },
+    ];
+
     const boardContainer = document.getElementById("board");
     const statusBar = document.getElementById("statusBar");
     const difficultySelect = document.getElementById("difficultySelect");
     const resetButton = document.getElementById("resetButton");
     const nextButton = document.getElementById("nextButton");
 
-    const boardState = {
-        difficultyKey: "easy",
-        config: difficultyConfig.easy,
-        startId: 0,
-        goalId: 0,
-        blockedSet: new Set(),
-        blockedMask: 0n,
-        accessibleCount: TOTAL_CELLS,
-        neighbors: []
-    };
-
     const DIFFICULTY_KEYS = Object.keys(difficultyConfig);
-    const presetStock = {
-        easy: [],
-        normal: [],
-        hard: []
-    };
-    const presetGenerationInFlight = {
-        easy: false,
-        normal: false,
-        hard: false
+
+    function createDifficultyMap(defaultValue) {
+        return Object.fromEntries(DIFFICULTY_KEYS.map((key) => [key, defaultValue]));
+    }
+
+    const presetStock = createDifficultyMap([]);
+    const presetGenerationInFlight = createDifficultyMap(false);
+    const presetRotationIndex = createDifficultyMap(0);
+
+    const presetSequences = {
+        easy: EASY_START_GOAL_OPTIONS,
+        normal: NORMAL_START_GOAL_OPTIONS,
+        hard: HARD_START_GOAL_OPTIONS
     };
     const scheduleBackgroundTask = (typeof window !== "undefined" && typeof window.requestIdleCallback === "function")
         ? (callback) => window.requestIdleCallback(callback)
         : (callback) => window.setTimeout(callback, 0);
 
-    const cellsById = new Array(TOTAL_CELLS);
-    const cellLabels = new Array(TOTAL_CELLS);
-    const cellPipes = new Array(TOTAL_CELLS);
     let path = [];
     let visited = new Set();
     let gameEnded = false;
     let activePointerId = null;
     let isDragging = false;
-    let warningTimer = null;
-    let lastDeadCellId = null;
 
     init();
 
     function init() {
         initBoard();
-    initDifficultySelector();
+        initDifficultySelector();
         initControlButtons();
         primeInitialPresets();
-        startNewGame("easy");
-    window.addEventListener("pointerup", handleGlobalPointerUp, { passive: true });
-    window.addEventListener("pointercancel", handleGlobalPointerUp, { passive: true });
-    window.addEventListener("pointermove", handleGlobalPointerMove, { passive: false });
-    boardContainer.addEventListener("contextmenu", (event) => event.preventDefault());
+        startNewGame(boardState.difficultyKey);
+        window.addEventListener("pointerup", handleGlobalPointerUp, { passive: true });
+        window.addEventListener("pointercancel", handleGlobalPointerUp, { passive: true });
+        window.addEventListener("pointermove", handleGlobalPointerMove, { passive: false });
+        if (boardContainer) {
+            boardContainer.addEventListener("contextmenu", (event) => event.preventDefault());
+        }
     }
 
     function initBoard() {
+        if (!boardContainer) {
+            return;
+        }
+        rebuildBoard(boardState.geometry);
+    }
+
+    function rebuildBoard(geometry) {
+        if (!boardContainer) {
+            return;
+        }
+        boardContainer.innerHTML = "";
+        boardContainer.style.setProperty("--board-cols", String(geometry.cols));
+        boardState.cellsById = new Array(geometry.totalCells);
+        boardState.cellLabels = new Array(geometry.totalCells);
+        boardState.cellPipes = new Array(geometry.totalCells);
+
         const fragment = document.createDocumentFragment();
-        for (let row = 0; row < ROWS; row += 1) {
-            for (let col = 0; col < COLS; col += 1) {
+        for (let row = 0; row < geometry.rows; row += 1) {
+            for (let col = 0; col < geometry.cols; col += 1) {
                 const cell = document.createElement("div");
-                const id = coordsToId(row, col);
+                const id = coordsToId(row, col, geometry);
                 cell.className = "cell";
                 cell.dataset.row = String(row);
                 cell.dataset.col = String(col);
@@ -254,7 +344,7 @@
                 const label = document.createElement("span");
                 label.className = "cell-label";
                 cell.appendChild(label);
-                cellLabels[id] = label;
+                boardState.cellLabels[id] = label;
 
                 const pipes = {};
                 ["center", "up", "down", "left", "right"].forEach((dir) => {
@@ -263,9 +353,9 @@
                     cell.appendChild(pipe);
                     pipes[dir] = pipe;
                 });
-                cellPipes[id] = pipes;
+                boardState.cellPipes[id] = pipes;
                 fragment.appendChild(cell);
-                cellsById[id] = cell;
+                boardState.cellsById[id] = cell;
             }
         }
         boardContainer.appendChild(fragment);
@@ -315,14 +405,49 @@
         }
     }
 
-    function consumePresetFromStock(key) {
-        const stock = presetStock[key];
-        if (!stock || stock.length === 0) {
+    function consumePresetFromStock(key, excludeSignature) {
+        if (!presetStock[key]) {
+            presetStock[key] = [];
+        }
+        if (presetStock[key].length === 0) {
             primePresetStock(key);
         }
-        const preset = presetStock[key].shift();
+
+        const stock = presetStock[key];
+        let preset = null;
+        const stockLength = stock.length;
+
+        for (let attempt = 0; attempt < stockLength; attempt += 1) {
+            const candidate = stock.shift();
+            const candidateSignature = serializePreset(candidate);
+            if (!excludeSignature || candidateSignature !== excludeSignature) {
+                preset = candidate;
+                break;
+            }
+            stock.push(candidate);
+        }
+
+        if (!preset) {
+            preset = stock.shift();
+            if (!preset) {
+                preset = createBoardPreset(key);
+            }
+        }
+
         schedulePresetReplenish(key);
         return preset;
+    }
+
+    function serializePreset(preset) {
+        if (!preset) {
+            return "";
+        }
+        const startPart = Array.isArray(preset.start) ? preset.start.join(",") : "";
+        const goalPart = Array.isArray(preset.goal) ? preset.goal.join(",") : "";
+        const blockedPart = Array.isArray(preset.blocked)
+            ? preset.blocked.slice().sort((a, b) => a - b).join(",")
+            : "";
+        return `${startPart}|${goalPart}|${blockedPart}`;
     }
 
     function schedulePresetReplenish(key) {
@@ -347,40 +472,68 @@
 
     // Rebuilds the board for the selected difficulty.
     function startNewGame(key) {
+        const previousKey = boardState.difficultyKey;
         boardState.difficultyKey = key;
         boardState.config = difficultyConfig[key];
-        const preset = consumePresetFromStock(key);
+        ensureBoardGeometry(boardState.config);
+
+        // Clear preset stock when difficulty changes to prevent geometry mismatch
+        if (previousKey !== key) {
+            presetStock[key] = [];
+            presetGenerationInFlight[key] = false;
+        }
+
+        const preset = consumePresetFromStock(key, boardState.currentPresetSignature);
+        boardState.currentPreset = preset;
+        boardState.currentPresetSignature = serializePreset(preset);
         applyPreset(preset);
         resetPathState();
         setStatusMessage("スタートマスをなぞってください。", "info");
         updateDifficultySelection(key);
     }
 
+    function ensureBoardGeometry(config) {
+        const { rows, cols } = config;
+        const { geometry } = boardState;
+        if (geometry && geometry.rows === rows && geometry.cols === cols) {
+            return;
+        }
+        boardState.geometry = createGeometry(rows, cols);
+        boardState.blockedSet = new Set();
+        boardState.accessibleCount = boardState.geometry.totalCells;
+        boardState.neighbors = [];
+        rebuildBoard(boardState.geometry);
+    }
+
     function applyPreset(preset) {
-        const startId = coordsToId(preset.start[0], preset.start[1]);
-        const goalId = coordsToId(preset.goal[0], preset.goal[1]);
+        const geometry = boardState.geometry;
+        const startId = coordsToId(preset.start[0], preset.start[1], geometry);
+        const goalId = coordsToId(preset.goal[0], preset.goal[1], geometry);
         const blockedSet = new Set(preset.blocked);
         boardState.startId = startId;
         boardState.goalId = goalId;
         boardState.blockedSet = blockedSet;
-        boardState.blockedMask = setToMask(blockedSet);
-        boardState.accessibleCount = TOTAL_CELLS - blockedSet.size;
-        boardState.neighbors = computeNeighborLookup(blockedSet);
-        boardContainer.classList.remove("is-complete");
+        boardState.accessibleCount = geometry.totalCells - blockedSet.size;
+        boardState.neighbors = computeNeighborLookup(blockedSet, geometry);
+        if (boardContainer) {
+            boardContainer.classList.remove("is-complete");
+        }
 
-        cellsById.forEach((cell, index) => {
+        boardState.cellsById.forEach((cell, index) => {
+            if (!cell) {
+                return;
+            }
             cell.classList.remove(
                 "cell-start",
                 "cell-goal",
                 "cell-blocked",
-                "cell-active",
-                "cell-warning",
-                "cell-dead"
+                "cell-active"
             );
-            if (cellLabels[index]) {
-                cellLabels[index].textContent = "";
+            const label = boardState.cellLabels[index];
+            if (label) {
+                label.textContent = "";
             }
-            const pipes = cellPipes[index];
+            const pipes = boardState.cellPipes[index];
             if (pipes) {
                 Object.values(pipes).forEach((pipe) => pipe.classList.remove("is-active"));
             }
@@ -389,11 +542,15 @@
             }
         });
 
-        const startCell = cellsById[startId];
-        const goalCell = cellsById[goalId];
-        startCell.classList.add("cell-start");
+        const startCell = boardState.cellsById[startId];
+        const goalCell = boardState.cellsById[goalId];
+        if (startCell) {
+            startCell.classList.add("cell-start");
+        }
         setCellLabel(startId, "S");
-        goalCell.classList.add("cell-goal");
+        if (goalCell) {
+            goalCell.classList.add("cell-goal");
+        }
         setCellLabel(goalId, "G");
     }
 
@@ -404,25 +561,27 @@
         gameEnded = false;
         activePointerId = null;
         isDragging = false;
-        clearWarningIndicators();
-        clearDeadHighlight();
-        boardContainer.classList.remove("is-complete");
-        cellsById.forEach((cell, index) => {
-            cell.classList.remove("cell-active", "cell-warning", "cell-dead");
-            const pipes = cellPipes[index];
+        if (boardContainer) {
+            boardContainer.classList.remove("is-complete");
+        }
+        boardState.cellsById.forEach((cell, index) => {
+            if (!cell) {
+                return;
+            }
+            cell.classList.remove("cell-active");
+            const pipes = boardState.cellPipes[index];
             if (pipes) {
                 Object.values(pipes).forEach((pipe) => pipe.classList.remove("is-active"));
             }
-            if (!boardState.blockedSet.has(index) && cellLabels[index]) {
-                cellLabels[index].textContent = "";
+            if (!boardState.blockedSet.has(index)) {
+                const label = boardState.cellLabels[index];
+                if (label) {
+                    label.textContent = "";
+                }
             }
         });
         updateCellLabel(boardState.startId);
         updateCellLabel(boardState.goalId);
-        if (warningTimer) {
-            clearTimeout(warningTimer);
-            warningTimer = null;
-        }
     }
 
     function handlePointerDown(event) {
@@ -561,20 +720,9 @@
             }
         }
 
-        const futurePath = path.concat(cellId);
-        const futureVisited = new Set(visited);
-        futureVisited.add(cellId);
-        let moveIsDead = false;
-        if (config.giveLiveWarning === true) {
-            moveIsDead = !canFinishFromState(futurePath, futureVisited, boardState);
-        }
-
-        clearWarningIndicators();
-        clearDeadHighlight();
-
         path.push(cellId);
         visited.add(cellId);
-        const cell = cellsById[cellId];
+        const cell = boardState.cellsById[cellId];
         cell.classList.add("cell-active");
         activateCellCenter(cellId);
         updateCellLabel(cellId);
@@ -583,22 +731,9 @@
             linkCells(previousId, cellId);
         }
 
-        if (moveIsDead) {
-            flashWarning(cellId);
-            setStatusMessage("そのルートではゴールできません。別ルートを試しましょう。", "warning");
-        } else {
-            updateProgressMessage();
-        }
+        updateProgressMessage();
 
         checkForCompletion();
-        if (!gameEnded) {
-            if (config.giveLiveWarning === "onlyWhenDead") {
-                if (!canFinishFromState(path, visited, boardState)) {
-                    markDeadEnd(cellId);
-                    setStatusMessage("さらに進む道がありません。スタートからやり直してください。", "danger");
-                }
-            }
-        }
 
         return true;
     }
@@ -616,7 +751,9 @@
         const cleared = config.requireFullCover ? atGoal && coveredAll : atGoal;
         if (cleared) {
             gameEnded = true;
-            boardContainer.classList.add("is-complete");
+            if (boardContainer) {
+                boardContainer.classList.add("is-complete");
+            }
             setStatusMessage("クリアしました！おめでとうございます。", "success");
         }
     }
@@ -630,43 +767,10 @@
         }
     }
 
-    function markDeadEnd(cellId) {
-        clearDeadHighlight();
-        const cell = cellsById[cellId];
-        cell.classList.add("cell-dead");
-        lastDeadCellId = cellId;
-    }
-
-    function clearDeadHighlight() {
-        if (lastDeadCellId !== null) {
-            const cell = cellsById[lastDeadCellId];
-            if (cell) {
-                cell.classList.remove("cell-dead");
-            }
-        }
-        lastDeadCellId = null;
-    }
-
-    function clearWarningIndicators() {
-        cellsById.forEach((cell) => {
-            cell.classList.remove("cell-warning");
-        });
-        if (warningTimer) {
-            clearTimeout(warningTimer);
-            warningTimer = null;
-        }
-    }
-
-    function flashWarning(cellId) {
-        const cell = cellsById[cellId];
-        cell.classList.add("cell-warning");
-        warningTimer = window.setTimeout(() => {
-            cell.classList.remove("cell-warning");
-            warningTimer = null;
-        }, 900);
-    }
-
     function setStatusMessage(message, tone) {
+        if (!statusBar) {
+            return;
+        }
         statusBar.textContent = message;
         statusBar.classList.remove("info", "warning", "danger", "success");
         statusBar.classList.add(tone);
@@ -680,22 +784,23 @@
 
     // Provides a new board specification for the chosen difficulty.
     function createBoardPreset(key) {
-        if (key === "easy") {
-            return createEasyPreset();
-        }
-        return createGeneratedPreset(key);
+        const config = difficultyConfig[key];
+        const geometry = createGeometry(config.rows, config.cols);
+        const sequence = presetSequences[key];
+        return createSequentialPreset(key, sequence, geometry);
     }
 
-    // Builds a guided single-path style board for easy mode.
-    function createEasyPreset() {
-        const choice = randomChoice(EASY_PRESETS);
-        return createPresetFromPath(choice);
+    function createSequentialPreset(key, sequence, geometry) {
+        const currentIndex = presetRotationIndex[key] ?? 0;
+        const nextChoice = sequence[currentIndex % sequence.length];
+        presetRotationIndex[key] = (currentIndex + 1) % sequence.length;
+        return createPresetFromPath(nextChoice, geometry);
     }
 
-    function createPresetFromPath(spec) {
-        const pathIds = spec.path.map(([row, col]) => coordsToId(row, col));
+    function createPresetFromPath(spec, geometry) {
+        const pathIds = spec.path.map(([row, col]) => coordsToId(row, col, geometry));
         const accessibleSet = new Set(pathIds);
-        const blocked = ALL_CELL_IDS.filter((id) => !accessibleSet.has(id));
+        const blocked = geometry.allCellIds.filter((id) => !accessibleSet.has(id));
         return {
             start: spec.start,
             goal: spec.goal,
@@ -703,264 +808,40 @@
         };
     }
 
-    // Generates a fresh board using randomised walls while guaranteeing solvability.
-    function createGeneratedPreset(key) {
-        const startGoalOptions = key === "normal" ? NORMAL_START_GOAL_OPTIONS : HARD_START_GOAL_OPTIONS;
-        const pathReady = startGoalOptions.filter((option) => Array.isArray(option.path));
-        if (pathReady.length > 0) {
-            const choice = randomChoice(pathReady);
-            return createPresetFromPath(choice);
-        }
-        for (let attempt = 0; attempt < 160; attempt += 1) {
-            const pair = randomChoice(startGoalOptions);
-            const startId = coordsToId(pair.start[0], pair.start[1]);
-            const goalId = coordsToId(pair.goal[0], pair.goal[1]);
-            const blockedSet = buildBlockedSet(key, startId, goalId);
-            if (!blockedSet) {
-                continue;
-            }
-            if (!isConnected(startId, blockedSet)) {
-                continue;
-            }
-            const solution = findHamiltonianPath(startId, goalId, blockedSet);
-            if (!solution) {
-                continue;
-            }
-            return {
-                start: pair.start,
-                goal: pair.goal,
-                blocked: Array.from(blockedSet)
-            };
-        }
-        return createFallbackPreset(key);
-    }
-
-    // Places blocking cells according to the difficulty flavour while keeping openings around start/goal.
-    function buildBlockedSet(key, startId, goalId) {
-        const range = key === "normal" ? [4, 6] : [7, 9];
-        const targetCount = randomInt(range[0], range[1]);
-        const blocked = new Set();
-        let guard = 0;
-
-        while (blocked.size < targetCount && guard < 500) {
-            guard += 1;
-            const candidate = weightedCandidatePick(key, blocked, startId, goalId);
-            if (candidate === null || blocked.has(candidate)) {
-                continue;
-            }
-            blocked.add(candidate);
-            if (!hasEnoughDegree(startId, blocked) || !hasEnoughDegree(goalId, blocked)) {
-                blocked.delete(candidate);
-            }
-        }
-
-        if (blocked.size < targetCount) {
-            return null;
-        }
-        return blocked;
-    }
-
-    // Picks a candidate cell for blocking with a weight tuned to the difficulty theme.
-    function weightedCandidatePick(key, blocked, startId, goalId) {
-        const weights = [];
-        let totalWeight = 0;
-        ALL_CELL_IDS.forEach((id) => {
-            if (id === startId || id === goalId || blocked.has(id)) {
-                return;
-            }
-            const { row, col } = idToCoords(id);
-            const isEdge = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1;
-            const isInnerRing = row === 1 || row === ROWS - 2 || col === 1 || col === COLS - 2;
-            let weight = 1;
-            if (key === "normal") {
-                weight = isEdge ? 3 : (isInnerRing ? 2 : 1);
-            } else {
-                weight = isEdge ? 1 : (isInnerRing ? 3 : 4);
-            }
-            totalWeight += weight;
-            weights.push({ id, cumulative: totalWeight });
-        });
-        if (weights.length === 0 || totalWeight === 0) {
-            return null;
-        }
-        const threshold = Math.random() * totalWeight;
-        for (let index = 0; index < weights.length; index += 1) {
-            if (threshold <= weights[index].cumulative) {
-                return weights[index].id;
-            }
-        }
-        return weights[weights.length - 1].id;
-    }
-
-    function hasEnoughDegree(cellId, blockedSet) {
-        const neighbors = getBasicNeighbors(cellId).filter((id) => !blockedSet.has(id));
-        return neighbors.length >= 2;
-    }
-
-    // Ensures the accessible area stays in a single connected component.
-    function isConnected(startId, blockedSet) {
-        const visitedCells = new Set();
-        const queue = [startId];
-        visitedCells.add(startId);
-        while (queue.length > 0) {
-            const current = queue.shift();
-            getBasicNeighbors(current).forEach((neighbor) => {
-                if (!blockedSet.has(neighbor) && !visitedCells.has(neighbor)) {
-                    visitedCells.add(neighbor);
-                    queue.push(neighbor);
-                }
-            });
-        }
-        return visitedCells.size === TOTAL_CELLS - blockedSet.size;
-    }
-
-    // Supplies a deterministic board when random generation fails.
-    function createFallbackPreset(key) {
-        if (key === "normal") {
-            return { start: [0, 0], goal: [5, 5], blocked: [] };
-        }
-        return { start: [2, 2], goal: [3, 3], blocked: [] };
-    }
-
     // Returns a neighbor lookup table excluding blocked cells.
-    function computeNeighborLookup(blockedSet) {
-        const neighbors = new Array(TOTAL_CELLS);
-        for (let id = 0; id < TOTAL_CELLS; id += 1) {
+    function computeNeighborLookup(blockedSet, geometry = boardState.geometry) {
+        const neighbors = new Array(geometry.totalCells);
+        for (let id = 0; id < geometry.totalCells; id += 1) {
             if (blockedSet.has(id)) {
                 neighbors[id] = [];
                 continue;
             }
-            neighbors[id] = getBasicNeighbors(id).filter((neighbor) => !blockedSet.has(neighbor));
+            neighbors[id] = getBasicNeighbors(id, geometry).filter((neighbor) => !blockedSet.has(neighbor));
         }
         return neighbors;
     }
 
-    function getBasicNeighbors(id) {
-        const { row, col } = idToCoords(id);
+    function getBasicNeighbors(id, geometry = boardState.geometry) {
+        const { row, col } = idToCoords(id, geometry);
         const results = [];
         if (row > 0) {
-            results.push(coordsToId(row - 1, col));
+            results.push(coordsToId(row - 1, col, geometry));
         }
-        if (row < ROWS - 1) {
-            results.push(coordsToId(row + 1, col));
+        if (row < geometry.rows - 1) {
+            results.push(coordsToId(row + 1, col, geometry));
         }
         if (col > 0) {
-            results.push(coordsToId(row, col - 1));
+            results.push(coordsToId(row, col - 1, geometry));
         }
-        if (col < COLS - 1) {
-            results.push(coordsToId(row, col + 1));
+        if (col < geometry.cols - 1) {
+            results.push(coordsToId(row, col + 1, geometry));
         }
         return results;
     }
 
-    // Searches for a Hamiltonian path spanning all available tiles between start and goal.
-    function findHamiltonianPath(startId, goalId, blockedSet) {
-        const accessible = TOTAL_CELLS - blockedSet.size;
-        const neighbors = computeNeighborLookup(blockedSet);
-        const pathBuffer = [startId];
-        const visitedMask = addToMask(0n, startId);
-
-        const memo = new Map();
-
-        const result = dfsHamiltonian(startId, visitedMask, 1);
-        return result;
-
-        function dfsHamiltonian(currentId, mask, depth) {
-            if (depth === accessible) {
-                if (currentId === goalId) {
-                    return pathBuffer.slice();
-                }
-                return null;
-            }
-            if (currentId === goalId) {
-                return null;
-            }
-            const memoKey = `${currentId}:${mask.toString()}`;
-            if (memo.has(memoKey)) {
-                return null;
-            }
-            const nextCandidates = neighbors[currentId]
-                .filter((neighbor) => !maskHas(mask, neighbor))
-                .sort((a, b) => {
-                    const degreeA = neighbors[a].filter((id) => !maskHas(mask, id)).length;
-                    const degreeB = neighbors[b].filter((id) => !maskHas(mask, id)).length;
-                    return degreeA - degreeB;
-                });
-            for (let index = 0; index < nextCandidates.length; index += 1) {
-                const nextId = nextCandidates[index];
-                pathBuffer.push(nextId);
-                const nextMask = addToMask(mask, nextId);
-                const resultPath = dfsHamiltonian(nextId, nextMask, depth + 1);
-                if (resultPath) {
-                    return resultPath;
-                }
-                pathBuffer.pop();
-            }
-            memo.set(memoKey, false);
-            return null;
-        }
-    }
-
-    // Checks whether the puzzle can still be solved from the current partial path.
-    function canFinishFromState(currentPath, currentVisited, state) {
-        if (currentPath.length === 0) {
-            return true;
-        }
-        const targetCount = state.accessibleCount;
-        const lastId = currentPath[currentPath.length - 1];
-        const mask = setToMask(currentVisited);
-        const memo = new Map();
-
-        return dfs(lastId, mask, currentVisited.size);
-
-        function dfs(currentId, visitedMask, depth) {
-            const key = `${currentId}:${visitedMask.toString()}`;
-            if (memo.has(key)) {
-                return memo.get(key);
-            }
-
-            if (state.config.requireFullCover) {
-                if (depth === targetCount) {
-                    const success = currentId === state.goalId;
-                    memo.set(key, success);
-                    return success;
-                }
-                if (currentId === state.goalId && depth < targetCount) {
-                    // need to leave the goal again, continue exploring
-                }
-            } else {
-                if (currentId === state.goalId) {
-                    memo.set(key, true);
-                    return true;
-                }
-            }
-
-            const options = state.neighbors[currentId];
-            if (!options || options.length === 0) {
-                memo.set(key, false);
-                return false;
-            }
-
-            for (let index = 0; index < options.length; index += 1) {
-                const nextId = options[index];
-                if (maskHas(visitedMask, nextId)) {
-                    continue;
-                }
-                const nextMask = addToMask(visitedMask, nextId);
-                const ok = dfs(nextId, nextMask, depth + 1);
-                if (ok) {
-                    memo.set(key, true);
-                    return true;
-                }
-            }
-            memo.set(key, false);
-            return false;
-        }
-    }
-
     // Updates the text label element inside a cell.
     function setCellLabel(cellId, text) {
-        const label = cellLabels[cellId];
+        const label = boardState.cellLabels[cellId];
         if (label) {
             label.textContent = text;
         }
@@ -979,7 +860,7 @@
 
     // Highlights the core connector for the visited cell.
     function activateCellCenter(cellId) {
-        const pipes = cellPipes[cellId];
+        const pipes = boardState.cellPipes[cellId];
         if (pipes && pipes.center) {
             pipes.center.classList.add("is-active");
         }
@@ -992,8 +873,8 @@
             return;
         }
         const opposite = oppositeDirection(direction);
-        const fromPipes = cellPipes[fromId];
-        const toPipes = cellPipes[toId];
+        const fromPipes = boardState.cellPipes[fromId];
+        const toPipes = boardState.cellPipes[toId];
         if (fromPipes && fromPipes[direction]) {
             fromPipes[direction].classList.add("is-active");
         }
@@ -1037,48 +918,23 @@
         }
     }
 
-    function coordsToId(row, col) {
-        return row * COLS + col;
+    function coordsToId(row, col, geometry = boardState.geometry) {
+        return row * geometry.cols + col;
     }
 
-    function idToCoords(id) {
-        const row = Math.floor(id / COLS);
-        const col = id % COLS;
+    function idToCoords(id, geometry = boardState.geometry) {
+        const cols = geometry.cols;
+        const row = Math.floor(id / cols);
+        const col = id % cols;
         return { row, col };
     }
 
-    function areAdjacent(idA, idB) {
-        const a = idToCoords(idA);
-        const b = idToCoords(idB);
+    function areAdjacent(idA, idB, geometry = boardState.geometry) {
+        const a = idToCoords(idA, geometry);
+        const b = idToCoords(idB, geometry);
         const rowDiff = Math.abs(a.row - b.row);
         const colDiff = Math.abs(a.col - b.col);
         return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
     }
 
-    function randomChoice(list) {
-        const index = Math.floor(Math.random() * list.length);
-        return list[index];
-    }
-
-    function randomInt(min, max) {
-        const lower = Math.ceil(min);
-        const upper = Math.floor(max);
-        return Math.floor(Math.random() * (upper - lower + 1)) + lower;
-    }
-
-    function setToMask(set) {
-        let mask = 0n;
-        set.forEach((id) => {
-            mask |= 1n << BigInt(id);
-        });
-        return mask;
-    }
-
-    function addToMask(mask, id) {
-        return mask | (1n << BigInt(id));
-    }
-
-    function maskHas(mask, id) {
-        return (mask & (1n << BigInt(id))) !== 0n;
-    }
 })();
